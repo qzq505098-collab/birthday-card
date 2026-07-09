@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#ff6fae" />
+  <title>生日快乐</title>
+  <style>
+    :root{
+      --bg1:#1b1033;
+      --bg2:#4f1d55;
+      --pink:#ff6fae;
+      --gold:#ffe7a8;
+      --text:#fff7fb;
+      --muted:rgba(255,255,255,.76);
+      --border:rgba(255,255,255,.24);
+      --shadow:0 24px 80px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{
+      margin:0;
+      height:100%;
+      overflow:hidden;
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+    }
+    body{
+      background:
+        radial-gradient(circle at 25% 15%, rgba(255,215,229,.28), transparent 22%),
+        radial-gradient(circle at 78% 18%, rgba(255,231,168,.20), transparent 25%),
+        radial-gradient(circle at 50% 80%, rgba(255,111,174,.28), transparent 30%),
+        linear-gradient(160deg,var(--bg1),var(--bg2) 58%,#7b245f);
+    }
+    .page{
+      position:relative;
+      width:100%;
+      height:100%;
+      min-height:100svh;
+      padding:max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .stars,.hearts,.petals{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+      pointer-events:none;
+      z-index:0;
+    }
+    .fireworks{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+      z-index:0;
+    }
+    .star{
+      position:absolute;
+      width:2px;
+      height:2px;
+      border-radius:50%;
+      background:rgba(255,255,255,.92);
+      box-shadow:0 0 8px rgba(255,255,255,.95);
+      animation:twinkle 2.6s ease-in-out infinite;
+    }
+    @keyframes twinkle{
+      0%,100%{opacity:.25;transform:scale(.7)}
+      50%{opacity:1;transform:scale(1.45)}
+    }
+    .heart,.petal{
+      position:absolute;
+      top:-40px;
+      font-size:18px;
+      opacity:.78;
+      animation:fall linear infinite;
+      text-shadow:0 10px 24px rgba(0,0,0,.25);
+    }
+    .petal{font-size:14px;opacity:.58}
+    @keyframes fall{
+      0%{transform:translate3d(0,-10vh,0) rotate(0deg);opacity:0}
+      10%{opacity:.85}
+      100%{transform:translate3d(var(--drift),112vh,0) rotate(360deg);opacity:0}
+    }
+    .card{
+      width:min(94vw,430px);
+      height:min(92svh,760px);
+      min-height:650px;
+      overflow:hidden;
+      position:relative;
+      z-index:2;
+      border:1px solid var(--border);
+      border-radius:34px;
+      background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.09));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-80px -100px auto auto;
+      width:220px;
+      height:220px;
+      background:radial-gradient(circle,rgba(255,231,168,.42),transparent 64%);
+      border-radius:50%;
+      pointer-events:none;
+    }
+    .card-inner{
+      height:100%;
+      padding:22px 20px 18px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border:1px solid rgba(255,255,255,.25);
+      border-radius:999px;
+      color:var(--gold);
+      background:rgba(255,255,255,.09);
+      font-size:13px;
+      letter-spacing:.08em;
+      margin-top:2px;
+    }
+    .photo-stage{
+      position:relative;
+      width:100%;
+      height:245px;
+      margin:18px 0 14px;
+      border-radius:28px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.10);
+      box-shadow:0 18px 50px rgba(0,0,0,.22);
+    }
+    .photo-stage::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(180deg,rgba(0,0,0,.06),transparent 32%,rgba(0,0,0,.38)),
+        radial-gradient(circle at 50% 0%,rgba(255,255,255,.18),transparent 54%);
+      pointer-events:none;
+      z-index:3;
+    }
+    .photo{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:0;
+      transform:scale(1.06);
+      transition:opacity 1s ease, transform 5s ease;
+    }
+    .photo.active{
+      opacity:1;
+      transform:scale(1);
+    }
+    .photo-caption{
+      position:absolute;
+      left:14px;
+      right:14px;
+      bottom:13px;
+      z-index:4;
+      color:#fff;
+      font-size:14px;
+      line-height:1.5;
+      text-shadow:0 2px 12px rgba(0,0,0,.52);
+    }
+    .photo-dots{
+      position:absolute;
+      left:50%;
+      bottom:50px;
+      transform:translateX(-50%);
+      display:flex;
+      gap:6px;
+      z-index:4;
+    }
+    .dot{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:rgba(255,255,255,.42);
+      transition:.25s ease;
+    }
+    .dot.active{
+      width:18px;
+      border-radius:999px;
+      background:rgba(255,255,255,.92);
+    }
+    .city-tag{
+      position:absolute;
+      right:12px;
+      top:12px;
+      z-index:4;
+      min-width:58px;
+      height:32px;
+      padding:0 10px;
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.26);
+      color:#fff;
+      font-size:13px;
+      box-shadow:0 10px 28px rgba(0,0,0,.22);
+    }
+    h1{
+      margin:3px 0 4px;
+      font-size:35px;
+      line-height:1.08;
+      letter-spacing:.02em;
+      text-shadow:0 4px 22px rgba(255,111,174,.45);
+    }
+    .name{
+      color:var(--gold);
+      display:block;
+      margin-top:4px;
+      font-size:29px;
+    }
+    .subtitle{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.65;
+    }
+    .message-box{
+      width:100%;
+      margin:16px 0 12px;
+      padding:15px 15px;
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+      min-height:112px;
+      max-height:205px;
+      overflow-y:auto;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    }
+    .message-box::-webkit-scrollbar{
+      display:none;
+    }
+    .message{
+      white-space:pre-wrap;
+      word-break:break-word;
+      text-align:left;
+      font-size:15px;
+      line-height:1.68;
+      margin:0;
+      color:#fff;
+      text-shadow:0 2px 14px rgba(0,0,0,.20);
+    }
+    .cursor{
+      display:inline-block;
+      width:2px;
+      height:1.2em;
+      background:#fff;
+      margin-left:3px;
+      vertical-align:-.18em;
+      animation:blink .8s step-end infinite;
+    }
+    @keyframes blink{50%{opacity:0}}
+    .from{
+      margin:auto 0 12px;
+      color:rgba(255,255,255,.88);
+      font-size:14px;
+    }
+    .actions{
+      width:100%;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    button{
+      border:0;
+      border-radius:16px;
+      padding:13px 12px;
+      font-size:15px;
+      color:#fff;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.23);
+      box-shadow:0 10px 28px rgba(0,0,0,.16);
+    }
+    button.primary{
+      color:#5a1e35;
+      background:linear-gradient(180deg,#ffe1ef,#ff92c3);
+      border-color:rgba(255,255,255,.46);
+      font-weight:700;
+    }
+    .toast{
+      position:absolute;
+      left:50%;
+      bottom:24px;
+      transform:translateX(-50%) translateY(20px);
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:999px;
+      opacity:0;
+      transition:.25s ease;
+      z-index:6;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+    @media (max-height:720px){
+      .card{min-height:0;height:94svh}
+      .card-inner{padding:18px 18px 16px}
+      .photo-stage{height:205px;margin:13px 0 10px}
+      h1{font-size:31px}
+      .name{font-size:25px}
+      .subtitle{font-size:13px}
+      .message-box{margin:12px 0 10px;min-height:92px}
+      .message{font-size:14px;line-height:1.62}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="stars" id="stars"></div>
+    <canvas class="fireworks" id="fireworksCanvas"></canvas>
+    <div class="hearts" id="hearts"></div>
+    <div class="petals" id="petals"></div>
+
+    <main class="card">
+      <section class="card-inner">
+        <div class="badge">生日限定 · 给最特别的你</div>
+
+        <div class="photo-stage" id="photoStage">
+          <div class="city-tag" id="cityTag">咸阳</div>
+          <div class="photo-dots" id="photoDots"></div>
+          <div class="photo-caption" id="photoCaption">咸阳那天，雨衣颜色很亮，你也很可爱。</div>
+        </div>
+
+        <h1>生日快乐<span class="name" id="targetName">我的宝贝</span></h1>
+        <p class="subtitle">从咸阳、兰州到北京，想把每一次同行都认真记住。</p>
+
+        <div class="message-box">
+          <p class="message"><span id="typedText"></span><span class="cursor"></span></p>
+        </div>
+
+        <p class="from" id="fromText">—— 爱你的人</p>
+
+        <div class="actions">
+          <button class="primary" id="blessBtn">点我收下祝福</button>
+        </div>
+      </section>
+
+      <div class="toast" id="toast">生日快乐，愿望都实现</div>
+    </main>
+  </div>
+
+  <script>
+    const PHOTOS = [
+      { src: "01.jpg", city: "咸阳", caption: "咸阳那天，雨衣颜色很亮，你也很可爱。" },
+      { src: "02.jpg", city: "兰州", caption: "兰州的夜晚很好看，但我记住更多的是身边的你。" },
+      { src: "03.jpg", city: "北京", caption: "北京这一站，是我们一起走过的又一段好时光。" }
+    ];
+
+    const DEFAULTS = {
+      name: "我的宝贝",
+      from: "—— 爱你的人",
+      message: "祝你生日快乐，我最特别的女孩。
+
+遇见你以后，很多普通的日子都变得值得期待。咸阳那天虽然下着雨，可黄色和粉色的雨衣凑在一起，反而成了很可爱的回忆。那时候我就觉得，只要是和你一起，天气好不好、路远不远，好像都没有那么重要，因为身边是你，普通的一天也会变得很特别。
+
+兰州的夜晚很亮，灯光、花树和街景都很好看，可我记住最多的，还是你靠在我身边的样子。北京那天也是一样，站在很大的城市和很长的历史前面，我最想留下来的不是背景有多壮观，而是我们一起拍下这张照片的那个瞬间。
+
+你开心的时候，我会觉得整个世界都亮了一点；你难过的时候，我也想成为那个可以陪着你、抱紧你、认真听你说话的人。希望以后无论是在热闹的夜晚、下雨的路上，还是很平常的某一天，我都能在你身边，让你觉得安心一点、被爱多一点。
+
+新的一岁，愿你一直被温柔对待，愿你想要的都慢慢实现，愿你每天都有小小的幸运和确实的快乐。愿你可以继续漂亮、自由、可爱，也可以不用总是那么懂事和坚强。累的时候就慢一点，难过的时候就靠近我一点，我会一直在。
+
+以后我还想陪你去更多地方，拍更多照片，吃更多好吃的，把咸阳、兰州、北京之后的很多很多站，都变成只属于我们的回忆。也愿我能一直陪在你身边，陪你过生日，陪你看风景，陪你把以后每一个平凡的日子都过得有意义。
+
+生日快乐，宝贝。我爱你，不止今天，也不止这一岁。"
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const targetName = $("targetName");
+    const fromText = $("fromText");
+    const typedText = $("typedText");
+    const toast = $("toast");
+    const photoStage = $("photoStage");
+    const photoDots = $("photoDots");
+    const photoCaption = $("photoCaption");
+    const cityTag = $("cityTag");
+    let typingTimer = null;
+    let currentPhotoIndex = 0;
+    let photoElements = [];
+
+    function typeMessage(text){
+      clearInterval(typingTimer);
+      typedText.textContent = "";
+      let i = 0;
+      typingTimer = setInterval(() => {
+        typedText.textContent = text.slice(0, i++);
+        const box = typedText.closest(".message-box");
+        if(box) box.scrollTop = box.scrollHeight;
+        if(i > text.length) clearInterval(typingTimer);
+      }, 48);
+    }
+
+    function render(data){
+      targetName.textContent = data.name;
+      fromText.textContent = data.from;
+      typeMessage(data.message);
+    }
+
+    function showToast(text){
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1500);
+    }
+
+    function burst(){
+      for(let i=0;i<26;i++){
+        const el = document.createElement("div");
+        el.className = "heart";
+        el.textContent = ["💗","💕","💖","✨","🌟"][Math.floor(Math.random()*5)];
+        el.style.left = (50 + (Math.random()*48-24)) + "%";
+        el.style.top = (48 + (Math.random()*12-6)) + "%";
+        el.style.animation = "none";
+        el.style.position = "absolute";
+        el.style.transition = "transform 1.15s ease-out, opacity 1.15s ease-out";
+        document.querySelector(".page").appendChild(el);
+        requestAnimationFrame(()=>{
+          const x = (Math.random()*260-130);
+          const y = (Math.random()*-240-80);
+          el.style.transform = `translate(${x}px,${y}px) rotate(${Math.random()*180}deg) scale(${.85+Math.random()*1.1})`;
+          el.style.opacity = "0";
+        });
+        setTimeout(()=>el.remove(),1250);
+      }
+      showToast("生日快乐，愿望都实现");
+    }
+
+    function makeBackground(){
+      const stars = $("stars"), hearts = $("hearts"), petals = $("petals");
+      for(let i=0;i<78;i++){
+        const s = document.createElement("span");
+        s.className = "star";
+        s.style.left = Math.random()*100 + "%";
+        s.style.top = Math.random()*100 + "%";
+        s.style.animationDelay = Math.random()*2.6 + "s";
+        s.style.opacity = .2 + Math.random()*.8;
+        stars.appendChild(s);
+      }
+      for(let i=0;i<18;i++){
+        const h = document.createElement("span");
+        h.className = "heart";
+        h.textContent = ["♡","♥","💗","✨"][Math.floor(Math.random()*4)];
+        h.style.left = Math.random()*100 + "%";
+        h.style.setProperty("--drift", (Math.random()*140-70)+"px");
+        h.style.animationDuration = (7 + Math.random()*7) + "s";
+        h.style.animationDelay = (-Math.random()*12) + "s";
+        hearts.appendChild(h);
+      }
+      for(let i=0;i<22;i++){
+        const p = document.createElement("span");
+        p.className = "petal";
+        p.textContent = ["✦","✧","❀","✿"][Math.floor(Math.random()*4)];
+        p.style.left = Math.random()*100 + "%";
+        p.style.setProperty("--drift", (Math.random()*170-85)+"px");
+        p.style.animationDuration = (8 + Math.random()*8) + "s";
+        p.style.animationDelay = (-Math.random()*14) + "s";
+        petals.appendChild(p);
+      }
+    }
+
+    function startFireworks(){
+      const canvas = $("fireworksCanvas");
+      const ctx = canvas.getContext("2d");
+      let w = 0;
+      let h = 0;
+      let dpr = 1;
+      const particles = [];
+
+      function resize(){
+        dpr = window.devicePixelRatio || 1;
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function randomColor(){
+        const colors = ["#ffd1e8", "#ff6fae", "#ffe7a8", "#ffffff", "#ffc2d9", "#ffb86b"];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      function launchFirework(){
+        if(!w || !h) return;
+        const x = w * (0.16 + Math.random() * 0.68);
+        const y = h * (0.08 + Math.random() * 0.30);
+        const count = 42 + Math.floor(Math.random() * 34);
+        const color = randomColor();
+
+        for(let i = 0; i < count; i++){
+          const angle = Math.PI * 2 * i / count;
+          const speed = 1.2 + Math.random() * 3.6;
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 72 + Math.random() * 32,
+            maxLife: 104,
+            size: 1.3 + Math.random() * 2.3,
+            color
+          });
+        }
+      }
+
+      function draw(){
+        ctx.clearRect(0, 0, w, h);
+
+        for(let i = particles.length - 1; i >= 0; i--){
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.026;
+          p.vx *= 0.992;
+          p.vy *= 0.992;
+          p.life--;
+
+          const alpha = Math.max(p.life / p.maxLife, 0);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = p.color;
+          ctx.shadowBlur = 14;
+          ctx.shadowColor = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if(p.life <= 0){
+            particles.splice(i, 1);
+          }
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+        requestAnimationFrame(draw);
+      }
+
+      resize();
+      window.addEventListener("resize", resize);
+      setInterval(launchFirework, 900);
+      setTimeout(launchFirework, 250);
+      setTimeout(launchFirework, 850);
+      setTimeout(launchFirework, 1450);
+      draw();
+    }
+
+    function loadPhotos(){
+      PHOTOS.forEach((item, index) => {
+        const img = new Image();
+        img.className = "photo";
+        img.alt = item.city + "旅游照片";
+        img.onload = () => {
+          if(index === 0) img.classList.add("active");
+        };
+        img.src = item.src;
+        photoStage.insertBefore(img, photoStage.firstChild);
+        photoElements.push(img);
+
+        const dot = document.createElement("span");
+        dot.className = "dot" + (index === 0 ? " active" : "");
+        photoDots.appendChild(dot);
+      });
+
+      setInterval(() => {
+        showPhoto((currentPhotoIndex + 1) % PHOTOS.length);
+      }, 3600);
+
+      photoStage.addEventListener("click", () => {
+        showPhoto((currentPhotoIndex + 1) % PHOTOS.length);
+      });
+    }
+
+    function showPhoto(index){
+      currentPhotoIndex = index;
+      photoElements.forEach((img, i) => img.classList.toggle("active", i === index));
+      Array.from(photoDots.children).forEach((dot, i) => dot.classList.toggle("active", i === index));
+      photoCaption.textContent = PHOTOS[index].caption;
+      cityTag.textContent = PHOTOS[index].city;
+    }
+
+    const data = DEFAULTS;
+    makeBackground();
+    startFireworks();
+    loadPhotos();
+    render(data);
+
+    $("blessBtn").onclick = () => {
+      burst();
+      typeMessage(data.message);
+    };
+  </script>
+</body>
+</html>

@@ -342,6 +342,129 @@
       opacity:1;
       transform:translateX(-50%) translateY(0);
     }
+    .photo-viewer{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:
+        max(68px, calc(env(safe-area-inset-top) + 54px))
+        18px
+        max(92px, calc(env(safe-area-inset-bottom) + 72px));
+      background:rgba(7,4,15,.95);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      opacity:0;
+      visibility:hidden;
+      transition:opacity .28s ease, visibility .28s ease;
+      touch-action:pan-y;
+    }
+    .photo-viewer.show{
+      opacity:1;
+      visibility:visible;
+    }
+    .viewer-image{
+      display:block;
+      max-width:100%;
+      max-height:100%;
+      width:auto;
+      height:auto;
+      object-fit:contain;
+      border-radius:16px;
+      box-shadow:0 24px 80px rgba(0,0,0,.58);
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+    .viewer-close{
+      position:absolute;
+      top:max(14px, env(safe-area-inset-top));
+      right:16px;
+      z-index:3;
+      width:44px;
+      height:44px;
+      padding:0;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.24);
+      font-size:30px;
+      font-weight:300;
+      line-height:1;
+      box-shadow:none;
+    }
+    .viewer-nav{
+      position:absolute;
+      top:50%;
+      z-index:3;
+      width:46px;
+      height:58px;
+      padding:0;
+      transform:translateY(-50%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.20);
+      border-radius:16px;
+      font-size:34px;
+      line-height:1;
+      box-shadow:none;
+    }
+    .viewer-prev{left:10px}
+    .viewer-next{right:10px}
+    .viewer-info{
+      position:absolute;
+      left:24px;
+      right:24px;
+      bottom:max(20px, env(safe-area-inset-bottom));
+      z-index:3;
+      text-align:center;
+      color:#fff;
+      text-shadow:0 2px 12px rgba(0,0,0,.65);
+    }
+    .viewer-city{
+      display:block;
+      margin-bottom:5px;
+      color:var(--gold);
+      font-size:16px;
+    }
+    .viewer-caption{
+      display:block;
+      font-size:13px;
+      line-height:1.55;
+      color:rgba(255,255,255,.82);
+    }
+    .photo-hint{
+      position:absolute;
+      left:12px;
+      top:12px;
+      z-index:4;
+      padding:7px 10px;
+      border-radius:999px;
+      color:rgba(255,255,255,.92);
+      background:rgba(0,0,0,.27);
+      border:1px solid rgba(255,255,255,.20);
+      font-size:11px;
+      pointer-events:none;
+    }
+    @media (max-width:520px){
+      .viewer-nav{
+        top:auto;
+        bottom:max(74px, calc(env(safe-area-inset-bottom) + 58px));
+        width:44px;
+        height:44px;
+        border-radius:50%;
+      }
+      .viewer-prev{left:calc(50% - 58px)}
+      .viewer-next{right:calc(50% - 58px)}
+    }
+
     @media (max-height:720px){
       .card{min-height:0;height:94svh}
       .card-inner{padding:18px 18px 16px}
@@ -365,7 +488,8 @@
       <section class="card-inner">
         <div class="badge">生日限定 · 给最特别的你</div>
 
-        <div class="photo-stage" id="photoStage">
+        <div class="photo-stage" id="photoStage" role="button" tabindex="0" aria-label="点击放大当前照片">
+          <div class="photo-hint">点击查看完整照片</div>
           <div class="city-tag" id="cityTag">咸阳</div>
           <div class="photo-dots" id="photoDots"></div>
           <div class="photo-caption" id="photoCaption">咸阳那天，雨衣颜色很亮，你也很可爱。</div>
@@ -388,6 +512,17 @@
 
       <div class="toast" id="toast">生日快乐，愿望都实现</div>
     </main>
+
+    <div class="photo-viewer" id="photoViewer" aria-hidden="true">
+      <button class="viewer-close" id="viewerClose" type="button" aria-label="关闭照片">×</button>
+      <button class="viewer-nav viewer-prev" id="viewerPrev" type="button" aria-label="上一张照片">‹</button>
+      <img class="viewer-image" id="viewerImage" src="" alt="" />
+      <button class="viewer-nav viewer-next" id="viewerNext" type="button" aria-label="下一张照片">›</button>
+      <div class="viewer-info">
+        <strong class="viewer-city" id="viewerCity"></strong>
+        <span class="viewer-caption" id="viewerCaption"></span>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -402,17 +537,17 @@
     const DEFAULTS = {
       name: "我的宝贝",
       from: "—— 爱你的人",
-      message: `祝你生日快乐，我可爱的宝宝。
+      message: `祝你生日快乐，我最特别的女孩。
 
 遇见你以后，很多普通的日子都变得值得期待。咸阳那天虽然下着雨，可黄色和粉色的雨衣凑在一起，反而成了很可爱的回忆。那时候我就觉得，只要是和你一起，天气好不好、路远不远，好像都没有那么重要，因为身边是你，普通的一天也会变得很特别。
 
-兰州的夜晚很亮，灯光、花树和街景都很好看，可我记住最多的，还是你靠在我身边的样子。北京那天也是一样，站在很大的城市和很长的历史里，我最想留下来的不是背景有多壮观，而是我们一起拍下这张照片的那个瞬间。
+兰州的夜晚很亮，灯光、花树和街景都很好看，可我记住最多的，还是你靠在我身边的样子。北京那天也是一样，站在很大的城市和很长的历史前面，我最想留下来的不是背景有多壮观，而是我们一起拍下这张照片的那个瞬间。
 
 你开心的时候，我会觉得整个世界都亮了一点；你难过的时候，我也想成为那个可以陪着你、抱紧你、认真听你说话的人。希望以后无论是在热闹的夜晚、下雨的路上，还是很平常的某一天，我都能在你身边，让你觉得安心一点、被爱多一点。
 
 新的一岁，愿你一直被温柔对待，愿你想要的都慢慢实现，愿你每天都有小小的幸运和确实的快乐。愿你可以继续漂亮、自由、可爱，也可以不用总是那么懂事和坚强。累的时候就慢一点，难过的时候就靠近我一点，我会一直在。
 
-以后我还想陪你去更多地方，拍更多照片，吃更多好吃的，把咸阳、兰州、北京之后的很多很多站（西安没拍合照，是不是不爱了），都变成只属于我们的回忆。也愿我能一直陪在你身边，陪你过生日，陪你看风景，陪你把以后每一个平凡的日子都过得有意义。
+以后我还想陪你去更多地方，拍更多照片，吃更多好吃的，把咸阳、兰州、北京之后的很多很多站，都变成只属于我们的回忆。也愿我能一直陪在你身边，陪你过生日，陪你看风景，陪你把以后每一个平凡的日子都过得有意义。
 
 生日快乐，宝贝。我爱你，不止今天，也不止这一岁。`
     };
@@ -427,10 +562,19 @@
     const photoCaption = $("photoCaption");
     const cityTag = $("cityTag");
     const photoFallback = $("photoFallback");
+    const photoViewer = $("photoViewer");
+    const viewerImage = $("viewerImage");
+    const viewerCity = $("viewerCity");
+    const viewerCaption = $("viewerCaption");
+    const viewerClose = $("viewerClose");
+    const viewerPrev = $("viewerPrev");
+    const viewerNext = $("viewerNext");
     let typingTimer = null;
     let currentPhotoIndex = 0;
     let photoElements = [];
     let loadedCount = 0;
+    let photoTimer = null;
+    let viewerTouchStartX = 0;
 
     function typeMessage(text){
       clearInterval(typingTimer);
@@ -624,13 +768,55 @@
         photoDots.appendChild(dot);
       });
 
-      setInterval(() => {
-        if(PHOTOS.length > 1) showPhoto((currentPhotoIndex + 1) % PHOTOS.length);
-      }, 3600);
+      startPhotoTimer();
 
       photoStage.addEventListener("click", () => {
-        if(PHOTOS.length > 1) showPhoto((currentPhotoIndex + 1) % PHOTOS.length);
+        openPhotoViewer(currentPhotoIndex);
       });
+
+      photoStage.addEventListener("keydown", (event) => {
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openPhotoViewer(currentPhotoIndex);
+        }
+      });
+    }
+
+    function startPhotoTimer(){
+      clearInterval(photoTimer);
+      photoTimer = setInterval(() => {
+        if(PHOTOS.length > 1 && !photoViewer.classList.contains("show")){
+          showPhoto((currentPhotoIndex + 1) % PHOTOS.length);
+        }
+      }, 3600);
+    }
+
+    function openPhotoViewer(index){
+      clearInterval(photoTimer);
+      currentPhotoIndex = (index + PHOTOS.length) % PHOTOS.length;
+      const item = PHOTOS[currentPhotoIndex];
+
+      viewerImage.src = item.src;
+      viewerImage.alt = item.city + "旅游照片完整预览";
+      viewerCity.textContent = item.city;
+      viewerCaption.textContent = item.caption;
+
+      photoViewer.classList.add("show");
+      photoViewer.setAttribute("aria-hidden", "false");
+      viewerClose.focus();
+    }
+
+    function closePhotoViewer(){
+      photoViewer.classList.remove("show");
+      photoViewer.setAttribute("aria-hidden", "true");
+      startPhotoTimer();
+      photoStage.focus();
+    }
+
+    function changeViewerPhoto(step){
+      const nextIndex = (currentPhotoIndex + step + PHOTOS.length) % PHOTOS.length;
+      showPhoto(nextIndex);
+      openPhotoViewer(nextIndex);
     }
 
     function showPhoto(index){
@@ -640,6 +826,42 @@
       photoCaption.textContent = PHOTOS[index].caption;
       cityTag.textContent = PHOTOS[index].city;
     }
+
+    viewerClose.addEventListener("click", closePhotoViewer);
+
+    viewerPrev.addEventListener("click", (event) => {
+      event.stopPropagation();
+      changeViewerPhoto(-1);
+    });
+
+    viewerNext.addEventListener("click", (event) => {
+      event.stopPropagation();
+      changeViewerPhoto(1);
+    });
+
+    photoViewer.addEventListener("click", (event) => {
+      if(event.target === photoViewer){
+        closePhotoViewer();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if(!photoViewer.classList.contains("show")) return;
+
+      if(event.key === "Escape") closePhotoViewer();
+      if(event.key === "ArrowLeft") changeViewerPhoto(-1);
+      if(event.key === "ArrowRight") changeViewerPhoto(1);
+    });
+
+    photoViewer.addEventListener("touchstart", (event) => {
+      viewerTouchStartX = event.changedTouches[0].clientX;
+    }, { passive:true });
+
+    photoViewer.addEventListener("touchend", (event) => {
+      const distance = event.changedTouches[0].clientX - viewerTouchStartX;
+      if(Math.abs(distance) < 45) return;
+      changeViewerPhoto(distance > 0 ? -1 : 1);
+    }, { passive:true });
 
     function init(){
       makeBackground();
